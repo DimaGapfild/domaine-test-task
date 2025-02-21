@@ -35,6 +35,10 @@
       <script src="{{ 'animations.js' | asset_url }}" defer="defer"></script>
     {%- endif -%}
 
+    {% if template == "collection.custom" %}
+      <script src="https://unpkg.com/@tailwindcss/browser@4" defer="defer"></script>
+    {% endif %}
+
     {{ content_for_header }}
 
     {%- liquid
