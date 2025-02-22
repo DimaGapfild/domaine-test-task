@@ -48,6 +48,7 @@
 <product-card>
   <div class="bg-white p-4">
         <div class="relative rounded-[10px] p-[20px] border border-gray-200">
+          <a href="{{card_product.url}}" class="cursor-pointer">
           {% if product_compare_price != blank %}
             <span class="js-sale-badge z-10 absolute top-[20px] left-[20px] bg-white border-2 border-red-500 text-red-500 text-[15.37px] px-7 py-0.5 rounded-full">
                 {{variant_sale_badge}}
@@ -65,6 +66,7 @@
                   width="{{ card_image_width }}"
                   height="{{ card_image_height }}">
           </div>
+          </a>
         </div>
 
         {% for option in card_product.options_with_values %}
@@ -83,7 +85,7 @@
                     endfor
                   %}
                   <span
-                    class="relative w-[20px] h-[20px] bg-[{{color}}] {% if active_option %}active{% endif %} rounded-full swatch"
+                    class="relative cursor-pointer w-[20px] h-[20px] bg-[{{color}}] {% if active_option %}active{% endif %} rounded-full swatch"
                     data-option-value="{{value}}"></span>
                 {% endfor %}
             </div>
@@ -92,7 +94,9 @@
 
         <div class="flex flex-col mt-[15px] gap-y-[8px]">
             <p class="text-gray-600 text-[14px]/[16px]">{{vendor}}</p>
-            <p class="js-product-card-title text-lg font-bold text-[#0A4874] text-[16px]/[18px]">{{ product_title }}</p>
+            <a href="{{card_product.url}}" class="cursor-pointer">
+              <p class="js-product-card-title text-lg font-bold text-[#0A4874] text-[16px]/[18px]">{{ product_title }}</p>
+            </a>
             <div class="flex items-center space-x-2">
               <p class="js-original-price text-gray-500 line-through text-[14px]/[16px]">{{product_compare_price}}</p>
               <p class="js-price text-red-600 text-[14px]/[16px]">{{product_price}}</p>
