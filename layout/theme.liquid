@@ -37,6 +37,8 @@
 
     {% if template == "collection.custom" %}
       <script src="https://unpkg.com/@tailwindcss/browser@4" defer="defer"></script>
+      <link href="https://fonts.cdnfonts.com/css/roboto" rel="stylesheet">
+      <script src="{{ 'product-card.js' | asset_url }}" defer="defer"></script>
     {% endif %}
 
     {{ content_for_header }}
@@ -272,7 +274,7 @@
     </script>
   </head>
 
-  <body class="gradient{% if settings.animations_hover_elements != 'none' %} animate--hover-{{ settings.animations_hover_elements }}{% endif %}">
+  <body class="gradient{% if settings.animations_hover_elements != 'none' %} animate--hover-{{ settings.animations_hover_elements }}{% endif %}" data-money-format="{{shop.money_format}}">
     <a class="skip-to-content-link button visually-hidden" href="#MainContent">
       {{ 'accessibility.skip_to_text' | t }}
     </a>

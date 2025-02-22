@@ -1,3 +1,105 @@
+{% liquid
+  assign card_image_default_url = card_product.featured_image | image_url: width: '600x'
+  assign card_image_height = card_product.featured_image.height
+  assign card_image_width = card_product.featured_image.width
+  assign vendor = card_product.vendor
+  assign product_title = card_product.title
+  assign card_variant = card_product.first_available_variant
+  assign product_price = card_variant.price | money
+  assign product_compare_price = card_variant.compare_at_price | money
+  assign variant_sale_badge = card_product.metafields.custom.sale_badge_title
+  assign variants_swatch_colors = card_product.metafields.custom.variants_swatch_colors.value
+
+  assign card_variant_image_url = card_variant.featured_image | image_url: width: '600x'
+
+  assign product_media = card_product.media
+  assign card_variant_options_array = card_variant.options
+  for item in product_media
+    for option in card_variant_options_array
+      assign secondary_img_name = option | downcase | append: '-secondary'
+      if item.src contains secondary_img_name
+        assign secondary_img_url = item.src | image_url: width: '600x'
+      endif
+    endfor
+  endfor
+
+%}
+
+<style>
+  product-card,
+  product-card span,
+  product-card p,
+  product-card h2 {
+    font-family: 'Roboto', sans-serif;
+  }
+  .swatch.active::before {
+    content: "";
+    display: block;
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    width: 24px;
+    height: 24px;
+    border: 1px solid #0A4874;
+    border-radius: 50%;
+  }
+</style>
+
 <product-card>
-  
+  <div class="bg-white p-4">
+        <div class="relative rounded-[10px] p-[20px] border border-gray-200">
+          {% if product_compare_price != blank %}
+            <span class="js-sale-badge z-10 absolute top-[20px] left-[20px] bg-white border-2 border-red-500 text-red-500 text-[15.37px] px-7 py-0.5 rounded-full">
+                {{variant_sale_badge}}
+            </span>
+          {% endif %}
+          <div class="relative overflow-hidden product-card-img-holder js-product-card-img-holder ">
+            <img src="{{card_variant_image_url | default: card_image_default_url }}"
+                  alt="Plain T-shirt"
+                  class="js-product-card-img w-full hover:hidden"
+                  width="{{ card_image_width }}"
+                  height="{{ card_image_height }}" />
+            <img src="{{secondary_img_url | default: card_variant_image_url }}"
+                  alt="{{product_title}} - {{card_variant.title}}"
+                  class="js-product-card-secondary-img z-5 absolute top-0 left-0 opacity-0 transition-opacity duration-300 transform hover:opacity-100"
+                  width="{{ card_image_width }}"
+                  height="{{ card_image_height }}">
+          </div>
+        </div>
+
+        {% for option in card_product.options_with_values %}
+          {% case option.name %}
+          {% when 'Color' %}
+            <div class="flex items-center gap-x-[8px] mt-[15px] js-product-card-options">
+                {% for value in option.values %}
+                  {% liquid
+                    assign val = value | downcase
+                    assign color = variants_swatch_colors[val]
+                    assign active_option = false
+                    for option in card_variant_options_array
+                      if option == value
+                        assign active_option = true
+                      endif
+                    endfor
+                  %}
+                  <span
+                    class="relative w-[20px] h-[20px] bg-[{{color}}] {% if active_option %}active{% endif %} rounded-full swatch"
+                    data-option-value="{{value}}"></span>
+                {% endfor %}
+            </div>
+          {% endcase %}
+        {% endfor %}
+
+        <div class="flex flex-col mt-[15px] gap-y-[8px]">
+            <p class="text-gray-600 text-[14px]/[16px]">{{vendor}}</p>
+            <p class="js-product-card-title text-lg font-bold text-[#0A4874] text-[16px]/[18px]">{{ product_title }}</p>
+            <div class="flex items-center space-x-2">
+              <p class="js-original-price text-gray-500 line-through text-[14px]/[16px]">{{product_compare_price}}</p>
+              <p class="js-price text-red-600 text-[14px]/[16px]">{{product_price}}</p>
+          </div>
+        </div>
+    </div>
+    <script type="application/json" id="ProductDataJson-{{ card_product.id }}">
+      {{ card_product | json }}
+    </script>
 </product-card>
