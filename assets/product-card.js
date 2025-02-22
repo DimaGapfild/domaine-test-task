@@ -1,109 +1,119 @@
 class ProductCard extends HTMLElement {
-    constructor() {
-        super();
-        const productData = this.getProductDataFromJSON(this);
+  constructor() {
+    super();
+    this.product = this.getProductDataFromJSON(this);
 
-        console.log("productData", productData)
-        this.product = productData;
+    this.imgHolder = this.querySelector(".js-product-card-img-holder");
 
-        this.imgHolder = this.querySelector(".js-product-card-img-holder");
+    this.priceHolder = this.querySelector(".js-price");
+    this.compareAtPriceHolder = this.querySelector(".js-original-price");
 
-        this.priceHolder = this.querySelector(".js-price");
-        this.compareAtPriceHolder = this.querySelector(".js-original-price");
+    this.productOptions = this.querySelectorAll(
+      ".js-product-card-options .swatch"
+    );
 
-        this.productOptions = this.querySelectorAll(
-            ".js-product-card-options .swatch"
-        );
+    this.productOptions?.forEach((item) => {
+      item.addEventListener("click", this.handleOptionChange);
+    });
 
-        this.productOptions?.forEach((item) => {
-            item.addEventListener("click", this.handleOptionChange);
-        });
+    this.saleBadge = this.querySelector(".js-sale-badge");
+    this.cardTitle = this.querySelector(".js-product-card-title");
 
-        this.saleBadge = this.querySelector(".js-sale-badge")
-        this.cardTitle = this.querySelector(".js-product-card-title")
+    this.pickedVariant = undefined;
+  }
 
-        this.pickedVariant = undefined
+  CENTS_IN_DOLLAR = 100;
+  NUMBER_OF_DECIMALS_2 = 2;
+
+  getProductDataFromJSON = (node) => {
+    const dataHolder = node.querySelector(`[id^="ProductDataJson"]`);
+    return dataHolder && JSON.parse(dataHolder.innerHTML);
+  };
+
+  handleOptionChange = (e) => {
+    const optionValue = e.target.dataset.optionValue;
+    this.pickedVariant = this.getVariantByTitle(optionValue);
+    this.setVariantImage(optionValue);
+    this.setTitle();
+    this.setPrice();
+    this.setActiveOption(e.target);
+  };
+
+  getVariantByOptions = (options) =>
+    this.variants.find(({ variantOptions }) =>
+      isArrayEquals(variantOptions, options)
+    );
+
+  setActiveOption(option) {
+    this.clearOptionsActiveClass();
+    option.classList.add("active");
+  }
+
+  clearOptionsActiveClass = () => {
+    this.productOptions.forEach((i) => i.classList.remove("active"));
+  };
+
+  setVariantImage = (optionName) => {
+    const mainImage = this.imgHolder.querySelector(".js-product-card-img");
+    const mainImageSrc = this.pickedVariant?.featured_image?.src;
+    if (mainImageSrc) {
+      mainImage.src = mainImageSrc;
     }
-
-    CENTS_IN_DOLLAR = 100
-    NUMBER_OF_DECIMALS_2 = 2
-
-    getProductDataFromJSON = (node) => {
-      const dataHolder = node.querySelector(`[id^="ProductDataJson"]`);
-      return dataHolder && JSON.parse(dataHolder.innerHTML);
+    const secondaryImage = this.imgHolder.querySelector(
+      ".js-product-card-secondary-img"
+    );
+    const secondaryImageName = `${optionName}-secondary`.toLowerCase();
+    const secondaryImageSrc = this.product.media.find((item) =>
+      item.src.includes(secondaryImageName)
+    )?.src;
+    if (secondaryImageSrc) {
+      secondaryImage.src = secondaryImageSrc;
     }
+  };
 
-    handleOptionChange = (e) => {
-      const optionValue = e.target.dataset.optionValue
-      this.pickedVariant = this.getVariantByTitle(optionValue)
-        this.setVariantImage(optionValue);
-        this.setTitle()
-        this.setPrice();
-        this.setActiveOption(e.target);
-    };
+  setTitle = () => (this.cardTitle.innerHTML = this.pickedVariant.name);
 
-    getVariantByOptions = (options) =>
-      this.variants.find(({ variantOptions }) =>
-          isArrayEquals(variantOptions, options)
-      );
+  getVariantByTitle = (optionName) =>
+    this.product.variants.find((item) => item.title === optionName);
 
-    setActiveOption(option) {
-        this.clearOptionsActiveClass()
-        option.classList.add("active")
-    }
+  setPrice = () => {
+    const price = this.pickedVariant.price;
+    const compareAtPrice = this.pickedVariant.compare_at_price;
+    this.showSaleBadge(compareAtPrice);
+    this.showCompareAtPrice(compareAtPrice);
+    this.updatePriceColor(compareAtPrice);
+    this.priceHolder.innerHTML = `${this.formatPrice(Number(price))}`;
+    this.compareAtPriceHolder.innerHTML = compareAtPrice
+      ? `${this.formatPrice(Number(compareAtPrice))}`
+      : ``;
+  };
 
-    clearOptionsActiveClass = () => {
-      this.productOptions.forEach((i) => i.classList.remove('active'))
-    }
+  formatPrice = (value) => {
+    const body = document.querySelector("body");
+    const priceTemplate = body.dataset.moneyFormat;
+    return priceTemplate.replace(
+      `{{amount}}`,
+      (value / this.CENTS_IN_DOLLAR).toFixed(this.NUMBER_OF_DECIMALS_2)
+    );
+  };
 
-    setVariantImage = (optionName) => {
-      const mainImage = this.imgHolder.querySelector(".js-product-card-img")
-      const mainImageSrc = this.pickedVariant?.featured_image?.src
-      if (mainImageSrc) {mainImage.src = mainImageSrc}
-      const secondaryImage = this.imgHolder.querySelector(".js-product-card-secondary-img")
-      const secondaryImageName = `${optionName}-secondary`.toLowerCase()
-      const secondaryImageSrc = this.product.media.find((item) => item.src.includes(secondaryImageName))?.src
-      if (secondaryImageSrc) {secondaryImage.src = secondaryImageSrc}
-    }
+  showSaleBadge = (isVisible) => {
+    this.saleBadge.style.display = isVisible ? "block" : "none";
+  };
 
-    setTitle = () => this.cardTitle.innerHTML = this.pickedVariant.name
+  showCompareAtPrice = (isVisible) => {
+    this.compareAtPriceHolder.style.display = isVisible ? "block" : "none";
+  };
 
-    getVariantByTitle = (optionName) => this.product.variants.find((item) => item.title === optionName)
+  updatePriceColor = (isPriceHighlighted) => {
+    this.priceHolder.classList.remove("text-red-600");
+    isPriceHighlighted && this.priceHolder.classList.add("text-red-600");
+  };
 
-    setPrice = () => {
-        const price = this.pickedVariant.price
-        const compareAtPrice = this.pickedVariant.compare_at_price
-        this.showSaleBadge(compareAtPrice)
-        this.showCompareAtPrice(compareAtPrice)
-        this.updatePriceColor(compareAtPrice)
-        this.priceHolder.innerHTML = `${this.formatPrice(Number(price))}`;
-        this.compareAtPriceHolder.innerHTML = compareAtPrice ? `${this.formatPrice(Number(compareAtPrice))}` : ``;
-    }
-
-    formatPrice = (value) => {
-      const body = document.querySelector("body");
-      const priceTemplate = body.dataset.moneyFormat;
-      return priceTemplate.replace(
-        `{{amount}}`,(value / this.CENTS_IN_DOLLAR).toFixed(this.NUMBER_OF_DECIMALS_2))
-    }
-
-    showSaleBadge = (isVisible) => {
-      this.saleBadge.style.display = isVisible ? "block" : "none"
-    }
-
-    showCompareAtPrice = (isVisible) => {
-      this.compareAtPriceHolder.style.display = isVisible ? "block" : "none"
-    }
-
-    updatePriceColor = (isPriceHighlighted) => {
-      this.priceHolder.classList.remove("text-red-600")
-      isPriceHighlighted && this.priceHolder.classList.add("text-red-600")
-    }
-
-    removeActiveClassName(arr) {
-        arr.forEach((node) => node.classList.remove("active"));
-    }
+  removeActiveClassName(arr) {
+    arr.forEach((node) => node.classList.remove("active"));
+  }
 }
 
 document.querySelector("product-card") &&
-      customElements.define("product-card", ProductCard);
+  customElements.define("product-card", ProductCard);
