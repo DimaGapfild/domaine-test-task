@@ -20,6 +20,8 @@ class ProductCard extends HTMLElement {
     this.cardTitle = this.querySelector(".js-product-card-title");
 
     this.pickedVariant = undefined;
+    this.addToCartButton = this.querySelector(".js-add-to-cart");
+    this.addToCartButton.addEventListener("click", this.addToCart);
   }
 
   CENTS_IN_DOLLAR = 100;
@@ -37,6 +39,7 @@ class ProductCard extends HTMLElement {
     this.setTitle();
     this.setPrice();
     this.setActiveOption(e.target);
+    this.updateVariantId(this.pickedVariant.id);
   };
 
   getVariantByOptions = (options) =>
@@ -112,6 +115,34 @@ class ProductCard extends HTMLElement {
 
   removeActiveClassName(arr) {
     arr.forEach((node) => node.classList.remove("active"));
+  }
+
+  updateVariantId = (variant) => {
+    this.addToCartButton.dataset.variantId = variant;
+  }
+
+  addToCart = (e) => {
+    e.preventDefault();
+    const btn = e.target;
+    const variantId = btn.dataset.variantId;
+    const data = {
+      items: [{ id: variantId, quantity: 1 }],
+    };
+    fetch("/cart/add.js", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Success:", data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+    console.log("variant", variantId);
   }
 }
 
