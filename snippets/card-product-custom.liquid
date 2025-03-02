@@ -102,6 +102,9 @@
               <p class="js-price text-red-600 text-[14px]/[16px]">{{product_price}}</p>
           </div>
         </div>
+        <div class="flex flex-col mt-[15px] gap-y-[8px]">
+            <button class="js-add-to-cart bg-[#0A4874] text-white text-[14px]/[16px] font-bold py-2 rounded-md" data-variant-id="{{ card_variant.id }}">Add to cart</button>
+        </div>
     </div>
     <script type="application/json" id="ProductDataJson-{{ card_product.id }}">
       {{ card_product | json }}
